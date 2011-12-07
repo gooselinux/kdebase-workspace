@@ -1,0 +1,39 @@
+diff -up kdebase-workspace-4.3.4/libs/solid/control/powermanager.cpp.hal kdebase-workspace-4.3.4/libs/solid/control/powermanager.cpp
+--- kdebase-workspace-4.3.4/libs/solid/control/powermanager.cpp.hal	2009-12-14 08:49:30.623026679 -0600
++++ kdebase-workspace-4.3.4/libs/solid/control/powermanager.cpp	2009-12-14 08:50:50.842767523 -0600
+@@ -203,7 +203,7 @@ float Solid::Control::PowerManager::brig
+         else
+         {
+             return_SOLID_CALL(Ifaces::PowerManager *, globalPowerManager->managerBackend(),
+-                      false, brightness(controls.keys().at(0)));
++                      false, brightness(controls.keys(Solid::Control::PowerManager::Screen).at(0)));
+         }
+     }
+     else
+diff -up kdebase-workspace-4.3.4/solid/hal/halpower.cpp.hal kdebase-workspace-4.3.4/solid/hal/halpower.cpp
+--- kdebase-workspace-4.3.4/solid/hal/halpower.cpp.hal	2009-02-26 03:12:20.000000000 -0600
++++ kdebase-workspace-4.3.4/solid/hal/halpower.cpp	2009-12-14 08:56:30.768778165 -0600
+@@ -378,15 +378,17 @@ float HalPower::brightness(const QString
+     if(m_halManager.call("FindDeviceByCapability", "laptop_panel").arguments().at(0).toStringList().contains(device))
+     {
+         QDBusInterface deviceInterface("org.freedesktop.Hal", device, "org.freedesktop.Hal.Device.LaptopPanel", QDBusConnection::systemBus());
+-        brightness = deviceInterface.call("GetBrightness").arguments().at(0).toDouble();
+-        if(deviceInterface.lastError().isValid())
++        QDBusReply<int> brightnessReply = deviceInterface.call("GetBrightness");
++        if(!brightnessReply.isValid())
+         {
+-            return 0;
++            return 0.0;
+         }
+-        else
++        brightness = brightnessReply;
++        QDBusInterface propertyInterface("org.freedesktop.Hal", device, "org.freedesktop.Hal.Device", QDBusConnection::systemBus());
++        QDBusReply<int> levelsReply = propertyInterface.call("GetProperty", "laptop_panel.num_levels");
++        if (levelsReply.isValid())
+         {
+-            QDBusInterface propertyInterface("org.freedesktop.Hal", device, "org.freedesktop.Hal.Device", QDBusConnection::systemBus());
+-            int levels = propertyInterface.call("GetProperty", "laptop_panel.num_levels").arguments().at(0).toInt();
++            int levels = levelsReply;
+             return (float)(100*(brightness/(levels-1)));
+         }
+     }

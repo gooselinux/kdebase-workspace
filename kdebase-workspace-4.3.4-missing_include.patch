@@ -1,0 +1,11 @@
+diff -up kdebase-workspace-4.3.4/kdm/backend/ctrl.c.orig kdebase-workspace-4.3.4/kdm/backend/ctrl.c
+--- kdebase-workspace-4.3.4/kdm/backend/ctrl.c.orig	2010-01-20 13:44:13.000000000 +0100
++++ kdebase-workspace-4.3.4/kdm/backend/ctrl.c	2010-01-20 13:54:04.000000000 +0100
+@@ -38,6 +38,7 @@ from the copyright holder.
+ #include "dm_socket.h"
+ #include "dm_error.h"
+ 
++#include <sys/stat.h>
+ #include <string.h>
+ #include <signal.h>
+ #include <pwd.h>

@@ -1,0 +1,59 @@
+diff -up kdebase-workspace-4.2.0/plasma/applets/kickoff/core/models.cpp.kio_sysinfo kdebase-workspace-4.2.0/plasma/applets/kickoff/core/models.cpp
+--- kdebase-workspace-4.2.0/plasma/applets/kickoff/core/models.cpp.kio_sysinfo	2008-11-19 11:18:14.000000000 +0100
++++ kdebase-workspace-4.2.0/plasma/applets/kickoff/core/models.cpp	2009-02-26 15:09:17.000000000 +0100
+@@ -154,6 +154,8 @@ QStringList Kickoff::systemApplicationLi
+     KConfigGroup appsGroup = componentData().config()->group("SystemApplications");
+     QStringList apps;
+     apps << "systemsettings";
++    if (QFile::exists("/usr/share/kde4/services/sysinfo.protocol"))  
++        apps << "/usr/share/kde4/services/sysinfo.protocol";
+     apps = appsGroup.readEntry("DesktopFiles", apps);
+     return apps;
+ }
+diff -up kdebase-workspace-4.2.0/plasma/applets/kickoff/core/systemmodel.cpp.kio_sysinfo kdebase-workspace-4.2.0/plasma/applets/kickoff/core/systemmodel.cpp
+--- kdebase-workspace-4.2.0/plasma/applets/kickoff/core/systemmodel.cpp.kio_sysinfo	2008-11-19 11:18:14.000000000 +0100
++++ kdebase-workspace-4.2.0/plasma/applets/kickoff/core/systemmodel.cpp	2009-02-26 15:04:57.000000000 +0100
+@@ -245,17 +245,32 @@ QVariant SystemModel::data(const QModelI
+ 
+         KService::Ptr service = d->appsList[index.row()];
+ 
+-        switch (role) {
+-        case Qt::DisplayRole:
+-            return service->name();
+-        case Qt::DecorationRole:
+-            return KIcon(service->icon());
+-        case SubTitleRole:
+-            return service->genericName();
+-        case UrlRole:
+-            return service->entryPath();
+-        default:
+-            return QVariant();
++        if (service->name()=="sysinfo") {  
++            switch(role) {  
++            case Qt::DisplayRole:  
++                return i18n("System Information");  
++            case Qt::DecorationRole:  
++                return KIcon("hwinfo");  
++            case SubTitleRole:  
++                return "sysinfo:/";  
++            case UrlRole:  
++                return "sysinfo:/";  
++            default:  
++                return QVariant();  
++            }  
++        } else {  
++            switch (role) {
++            case Qt::DisplayRole:
++                return service->name();
++            case Qt::DecorationRole:
++                return KIcon(service->icon());
++            case SubTitleRole:
++                return service->genericName();
++            case UrlRole:
++                return service->entryPath();
++            default:
++                return QVariant();
++            }
+         }
+     }
+ 

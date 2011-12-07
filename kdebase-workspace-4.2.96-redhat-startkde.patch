@@ -1,0 +1,78 @@
+diff -up kdebase-workspace-4.2.96/startkde.cmake.redhat-startkde kdebase-workspace-4.2.96/startkde.cmake
+--- kdebase-workspace-4.2.96/startkde.cmake.redhat-startkde	2009-07-08 16:45:04.000000000 +0200
++++ kdebase-workspace-4.2.96/startkde.cmake	2009-07-16 15:28:12.000000000 +0200
+@@ -22,36 +22,20 @@ if test $kcheckrunning_result -eq 0 ; th
+ 	exit 1
+ elif test $kcheckrunning_result -eq 2 ; then
+ 	echo "\$DISPLAY is not set or cannot connect to the X server."
+-        exit 1
++        exit 1 
+ fi
+ 
+-# Set the background to plain grey.
++# Set the background to the Red Hat default.
+ # The standard X background is nasty, causing moire effects and exploding
+ # people's heads. We use colours from the standard KDE palette for those with
+ # palettised displays.
+ if test -z "$XDM_MANAGED" || echo "$XDM_MANAGED" | grep ",auto" > /dev/null; then
+-  xsetroot -solid "#000000"
++  xsetroot -solid "#103D77"
+ fi
+ 
+ # we have to unset this for Darwin since it will screw up KDE's dynamic-loading
+ unset DYLD_FORCE_FLAT_NAMESPACE
+ 
+-# in case we have been started with full pathname spec without being in PATH
+-bindir=`echo "$0" | sed -n 's,^\(/.*\)/[^/][^/]*$,\1,p'`
+-if [ -n "$bindir" ]; then
+-  qbindir=`$bindir/kde4-config --qt-binaries`
+-  if [ -n "$qbindir" ]; then
+-    case $PATH in
+-      $qbindir|$qbindir:*|*:$qbindir|*:$qbindir:*) ;;
+-      *) PATH=$qbindir:$PATH; export PATH;;
+-    esac
+-  fi
+-  case $PATH in
+-    $bindir|$bindir:*|*:$bindir|*:$bindir:*) ;;
+-    *) PATH=$bindir:$PATH; export PATH;;
+-  esac
+-fi
+-
+ # Boot sequence:
+ #
+ # kdeinit is used to fork off processes which improves memory usage
+@@ -89,6 +73,13 @@ kcmrandrrc [Screen3]
+ kcmfonts General forceFontDPI 0
+ kdeglobals Locale Language '' # trigger requesting languages from KLocale
+ EOF
++# read the default KSplash theme to use out of kde-settings
++if [ -e /usr/share/kde-settings/kde-profile/default/share/config/ksplashrc ]
++  then eval `grep '^Theme=' /usr/share/kde-settings/kde-profile/default/share/config/ksplashrc`
++       if [ -n "$Theme" ]
++         then sed -i -e "s/Default/$Theme/g" $kdehome/share/config/startupconfigkeys
++       fi
++fi
+ kstartupconfig4
+ returncode=$?
+ if test $returncode -ne 0; then
+@@ -209,8 +200,9 @@ fi
+ # better use the Autostart folder.
+ 
+ libpath=`kde4-config --path lib | tr : '\n'`
++envpath=/etc/kde/env/
+ 
+-for prefix in `echo "$libpath" | sed -n -e 's,/lib[^/]*/,/env/,p'`; do
++for prefix in `echo "$libpath" | sed -n -e 's,/lib[^/]*/,/env/,p'` $envpath ; do
+   for file in "$prefix"*.sh; do
+     test -r "$file" && . "$file"
+   done
+@@ -423,7 +415,8 @@ kde3 dcopserver_shutdown --wait 2>/dev/n
+ echo 'startkde: Running shutdown scripts...'  1>&2
+ 
+ # Run scripts found in $KDEDIRS/shutdown
+-for prefix in `echo "$libpath" | sed -n -e 's,/lib[^/]*/,/shutdown/,p'`; do
++shutdownpath=/etc/kde/shutdown/
++for prefix in `echo "$libpath" | sed -n -e 's,/lib[^/]*/,/shutdown/,p'` $shutdownpath; do
+   for file in `ls "$prefix" 2> /dev/null | egrep -v '(~|\.bak)$'`; do
+     test -x "$prefix$file" && "$prefix$file"
+   done

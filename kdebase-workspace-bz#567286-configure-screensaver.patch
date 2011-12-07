@@ -1,0 +1,97 @@
+Index: workspace/plasma/shells/screensaver/plasmaapp.cpp
+===================================================================
+--- workspace/plasma/shells/screensaver/plasmaapp.cpp	(revision 1107681)
++++ workspace/plasma/shells/screensaver/plasmaapp.cpp	(working copy)
+@@ -128,6 +128,7 @@
+     : KUniqueApplication(display, visual, colormap),
+       m_corona(0),
+       m_view(0),
++      m_containment(0),
+       m_configDialog(0)
+ {
+     //load translations for libplasma
+@@ -378,6 +379,7 @@
+     //unsigned char data = VIEW;
+     //XChangeProperty(QX11Info::display(), m_view->effectiveWinId(), tag, tag, 8, PropModeReplace, &data, 1);
+ 
++    m_containment = containment;
+     connect(containment, SIGNAL(configureRequested(Plasma::Containment*)),
+             this, SLOT(configureContainment(Plasma::Containment*)));
+ 
+@@ -512,18 +514,38 @@
+         return;
+     }
+ 
+-    if (m_configDialog) {
+-        m_configDialog->reloadConfig();
+-    } else {
+-        const QSize resolution = QApplication::desktop()->screenGeometry(containment->screen()).size();
++    //require a password to unlock
++    QDBusInterface lockprocess("org.kde.screenlocker", "/LockProcess",
++                               "org.kde.screenlocker.LockProcess", QDBusConnection::sessionBus(), this);
++    if (m_corona->immutability() == Plasma::Mutable) {
++        if (m_configDialog) {
++            m_configDialog->reloadConfig();
++        } else {
++            const QSize resolution = QApplication::desktop()->screenGeometry(containment->screen()).size();
+ 
+-        m_configDialog = new BackgroundDialog(resolution, containment, m_view);
+-        m_configDialog->setAttribute(Qt::WA_DeleteOnClose);
+-        connect(m_configDialog, SIGNAL(destroyed(QObject*)),
+-                this, SLOT(configDialogRemoved(QObject*)));
++            m_configDialog = new BackgroundDialog(resolution, containment, m_view);
++            m_configDialog->setAttribute(Qt::WA_DeleteOnClose);
++            connect(m_configDialog, SIGNAL(destroyed(QObject*)),
++                    this, SLOT(configDialogRemoved(QObject*)));
++        }
++
++        m_configDialog->show();
++    } else if (m_corona->immutability() == Plasma::UserImmutable) {
++        QList<QVariant> args;
++        args << i18n("Unlock screensaver to configure it");
++        bool sent = lockprocess.callWithCallback("checkPass", args, this, SLOT(unlock(QDBusMessage)), SLOT(dbusError(QDBusError)));
++        kDebug() << sent;
+     }
++}
+ 
+-    m_configDialog->show();
++void PlasmaApp::unlock(QDBusMessage reply)
++{
++    bool success = reply.arguments().first().toBool();
++    kDebug() << success;
++    if (success) {
++        m_corona->setImmutability(Plasma::Mutable);
++        configureContainment(m_containment);
++    }
+ }
+ 
+ void PlasmaApp::configDialogRemoved(QObject* dialog)
+Index: workspace/plasma/shells/screensaver/plasmaapp.h
+===================================================================
+--- workspace/plasma/shells/screensaver/plasmaapp.h	(revision 1107681)
++++ workspace/plasma/shells/screensaver/plasmaapp.h	(working copy)
+@@ -27,6 +27,8 @@
+ 
+ #include <plasma/plasma.h>
+ 
++class QDBusMessage;
++
+ namespace Plasma
+ {
+     class Containment;
+@@ -100,6 +102,7 @@
+     void hideDialogs();
+     void showDialogs();
+     void configureContainment(Plasma::Containment*);
++    void unlock(QDBusMessage reply);
+     void configDialogRemoved(QObject* dialog);
+     void syncConfig();
+     void immutabilityChanged(Plasma::ImmutabilityType immutability);
+@@ -112,6 +115,7 @@
+ 
+     Plasma::Corona *m_corona;
+     SaverView *m_view;
++    Plasma::Containment *m_containment;
+     QList<QWidget*> m_dialogs;
+     BackgroundDialog *m_configDialog;
+ 

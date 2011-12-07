@@ -1,0 +1,19 @@
+diff -up kdebase-workspace-4.2.90/plasma/applets/kickoff/core/applicationmodel.cpp.show-systemsettings kdebase-workspace-4.2.90/plasma/applets/kickoff/core/applicationmodel.cpp
+--- kdebase-workspace-4.2.90/plasma/applets/kickoff/core/applicationmodel.cpp.show-systemsettings	2009-05-14 12:26:34.000000000 -0500
++++ kdebase-workspace-4.2.90/plasma/applets/kickoff/core/applicationmodel.cpp	2009-06-03 20:53:41.000000000 -0500
+@@ -111,7 +111,6 @@ public:
+               displayOrder(NameAfterDescription),
+               allowSeparators(_allowSeparators)
+     {
+-        systemApplications = Kickoff::systemApplicationList();
+     }
+ 
+     ~ApplicationModelPrivate()
+diff -up kdebase-workspace-4.2.90/systemsettings/app/systemsettings.desktop.show-systemsettings kdebase-workspace-4.2.90/systemsettings/app/systemsettings.desktop
+--- kdebase-workspace-4.2.90/systemsettings/app/systemsettings.desktop.show-systemsettings	2009-04-30 13:02:27.000000000 -0500
++++ kdebase-workspace-4.2.90/systemsettings/app/systemsettings.desktop	2009-06-03 20:53:41.000000000 -0500
+@@ -157,3 +157,4 @@ Name[zh_TW]=系統設定
+ 
+ X-DBUS-StartupType=Unique
+ Categories=Qt;KDE;Settings;
++OnlyShowIn=KDE;

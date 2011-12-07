@@ -1,0 +1,17 @@
+diff -up kdebase-workspace-4.3.4/powerdevil/daemon/PowerDevilDaemon.cpp.kde#221637 kdebase-workspace-4.3.4/powerdevil/daemon/PowerDevilDaemon.cpp
+--- kdebase-workspace-4.3.4/powerdevil/daemon/PowerDevilDaemon.cpp.kde#221637	2010-04-14 19:28:03.000000000 +0200
++++ kdebase-workspace-4.3.4/powerdevil/daemon/PowerDevilDaemon.cpp	2010-04-14 19:32:09.000000000 +0200
+@@ -1211,13 +1211,6 @@ void PowerDevilDaemon::emitWarningNotifi
+ void PowerDevilDaemon::emitNotification(const QString &evid, const QString &message,
+                                         const char *slot, const QString &iconname)
+ {
+-    if (!PowerDevilSettings::enableNotifications()) {
+-        if (slot) {
+-            QTimer::singleShot(0, this, slot);
+-        }
+-        return;
+-    }
+-
+     if (!slot) {
+         KNotification::event(evid, message, KIcon(iconname).pixmap(20, 20),
+                              0, KNotification::CloseOnTimeout, d->applicationData);

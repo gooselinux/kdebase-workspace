@@ -1,0 +1,11 @@
+--- kdebase-workspace-4.3.4.orig/powerdevil/daemon/PowerDevilDaemon.cpp
++++ kdebase-workspace-4.3.4/powerdevil/daemon/PowerDevilDaemon.cpp
+@@ -280,6 +280,8 @@
+     }
+ 
+     Solid::Control::PowerManager::setBrightness(d->brightness);
++
++    d->status = NoAction;
+ }
+ 
+ void PowerDevilDaemon::refreshStatus()
